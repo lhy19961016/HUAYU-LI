@@ -1,15 +1,13 @@
 def encryption(plaintext, key: int):
     ciphertext = []
     for i in range(len(plaintext)):
-        if plaintext[i].islower():
-            if 96 < int(ord(plaintext[i])) < 123:
+        if 96 < int(ord(plaintext[i])) < 123:
                 cipher_char = chr(ord(plaintext[i]) + int(key))
                 ciphertext.append(cipher_char)
-        elif plaintext[i].isupper():
-            if 64 < int(ord(plaintext[i])) < 91:
+        elif 64 < int(ord(plaintext[i])) < 91:
                 cipher_char = chr(ord(plaintext[i]) + int(key))
                 ciphertext.append(cipher_char)
-        elif 0 <= int(ord(plaintext[i])) <= 9:
+        elif 49 <= int(ord(plaintext[i])) <= 57:
             cipher_char = chr(ord(plaintext[i]) + int(key))
             ciphertext.append(cipher_char)
         else:
