@@ -10,10 +10,10 @@ Time used：
 Common program:136.81291890144348 sec
 
 
-Multithreads program:69.20186471939087 sec
+5 Multithreads program:66.83121180534363 sec
 
 
-Multiproccesses program:
+5 Multiproccesses program:64.87572836875916 sec
 
 
 
