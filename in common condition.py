@@ -3,8 +3,6 @@ import os
 import librosa
 import time
 
-#filename = 'G:/VoxCeleb2/aac'
-
 
 def readFile(filename):
     branch_soundfile = []
@@ -20,7 +18,8 @@ def ana_data(branch_soundfile):
     for sound_file in branch_soundfile:
         y, sr = librosa.load(sound_file, sr=None)
         mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=24)
-        mfcc_data.append(mfcc)
+        for elem in mfcc:
+            mfcc_data.append(elem)
     return mfcc_data
 
 
@@ -28,11 +27,8 @@ if __name__ == '__main__':
     time_start = time.time()
     filename = 'G:/VoxCeleb2/aac'
     branch_file = readFile(filename)
-    branch_file = np.array(branch_file)
+    branch_file = branch_file[0:1000:1]
     ana_file = ana_data(branch_file)
-    ana_file = np.array(ana_file)
+    np.save("mfcc_data0.npy", ana_file)
     time_end = time.time()
-
     print('total cost:', time_end - time_start)
-    print(branch_file)
-    print(ana_file)
