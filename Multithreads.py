@@ -30,29 +30,32 @@ if __name__ == '__main__':
     time_start = time.time()
     filename = 'G:/VoxCeleb2/aac'
     branch_file = readFile(filename)
+    branch_file = branch_file[0:1000:1]
     lens = len(branch_file)
-    File1 = branch_file[0:lens // 4:1]
-    File2 = branch_file[lens // 4:lens // 2:1]
-    File3 = branch_file[lens // 2:3 * lens // 4:1]
-    File4 = branch_file[3 * lens // 4:lens:1]
+    File1 = branch_file[0:lens // 5:1]
+    File2 = branch_file[lens // 5:(lens // 5) * 2:1]
+    File3 = branch_file[(lens // 5) * 2:3 * (lens // 5):1]
+    File4 = branch_file[3 * (lens // 5):4 * (lens // 5):1]
+    File5 = branch_file[4 * (lens // 5):lens:1]
     added_thread1 = threading.Thread(target=ana_data, name='Thread No.1', args=(File1,))
     added_thread2 = threading.Thread(target=ana_data, name='Thread No.2', args=(File2,))
     added_thread3 = threading.Thread(target=ana_data, name='Thread No.3', args=(File3,))
     added_thread4 = threading.Thread(target=ana_data, name='Thread No.4', args=(File4,))
+    added_thread5 = threading.Thread(target=ana_data, name='Thread No.5', args=(File5,))
 
     added_thread1.start()  # all threads start to process functions
     added_thread2.start()
     added_thread3.start()
     added_thread4.start()
+    added_thread5.start()
 
     added_thread1.join()  # Until  all threads finish the tasks then Quit at the same time
     added_thread2.join()
     added_thread3.join()
     added_thread4.join()
+    added_thread5.join()
 
-    np.save("mfcc_data.npy", mfcc_data)
-    print(mfcc_data)
-    print(len(mfcc_data))
+    np.save("mfcc_data1.npy", mfcc_data)
     time_end = time.time()
 
     print('total cost:', time_end - time_start)
