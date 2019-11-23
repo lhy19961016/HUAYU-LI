@@ -25,12 +25,22 @@ def http_post(url, file_json):
 Num = int(input('Enter the quantity of the tweets:'))
 print('Enter the path of the file:')
 File_Path = input()
+if not os.path.exists(File_Path):
+    while 1:
+        print('File do not exist,please enter again')
+        File_Path = input('Enter again:')
+        try:
+            if os.path.exists(File_Path):
+                break
+        except:
+            pass
+# --------------------Check file's existence----------------
 Size_data = os.path.getsize(File_Path)
 if int(Size_data) == 0 and int(Size_data) < 0:
     print("error")
 else:
     print("Verification completed")
-# -----------Check files----------------
+# -----------Check file's size----------------
 Command = input('Enter the command:')
 if Command != 'STAT' and Command != 'ENTI':
     while 1:
