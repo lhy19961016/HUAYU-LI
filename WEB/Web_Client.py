@@ -4,9 +4,7 @@ import os
 import pickle
 import time
 
-URL_STAT = 'http://localhost:9527/STAT'
-URL_ENTI = 'http://localhost:9527/ENTI'
-
+URL = 'http://127.0.0.1:54878/'
 
 def File_Reader(file_R, num):
     Reader = pd.read_csv(file_R, sep=';', encoding='iso-8859-1')
@@ -31,10 +29,7 @@ if Command != 'STAT' and Command != 'ENTI':
     print('Your Command is not in the list of Command,Please enter it again')
     Command = input('enter again:')
 
-if Command == 'STAT':
-    rst = requests.request("POST", URL_STAT, data=Data_Ready_For_Sending)
-if Command == 'ENTI':
-    rst = requests.request("POST", URL_ENTI, data=Data_Ready_For_Sending)
+rst = requests.request("POST", URL + Command, data=Data_Ready_For_Sending)
 
 time.sleep(2)
 Get_Data = pickle.loads(rst.content)
