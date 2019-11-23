@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 import urllib.request
 import os
-import json
+import pickle
 
-URL = 'http://127.0.0.1:8000/'
+URL = 'http://127.0.0.1:9527/'
 
 
 def File_Reader(file_R, num):
@@ -12,7 +12,7 @@ def File_Reader(file_R, num):
     data_R = Reader.iloc[0:num, :]
     Reader_Arr = np.array(data_R)
     Reader_List = Reader_Arr.tolist()
-    Pack_Data = json.dumps(Reader_List)
+    Pack_Data = pickle.dumps(Reader_List)
     return Pack_Data
 
 
