@@ -119,7 +119,7 @@ class RequestHeandler(BaseHTTPRequestHandler):
     def do_POST(self):
         data_length = int(self.headers['Content-Length'])
         data = self.rfile.read(data_length)
-        fields = parse_qs(data)
+        # fields = parse_qs(data)
         data_Get = pickle.loads(data)
         if self.path == '/STAT':
             res = Command_STAT(data_Get)
