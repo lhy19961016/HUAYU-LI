@@ -4,7 +4,6 @@ import socket
 import pandas as pd
 import pickle
 import os
-import time
 
 
 def File_Reader(file_R):
@@ -24,11 +23,8 @@ if not os.path.exists(File_Path):
                 break
         except:
             pass
-
-
-Stream_Data = File_Reader(File_Path)
 client = socket.socket()
-client.connect(('127.0.0.1', 8898))
+client.connect(('127.0.0.1', 8008))
 request = input('Enter request:')
 while True:
     if request != 'STAT' and request != 'ENTI':
@@ -40,29 +36,25 @@ while True:
                     break
             except:
                 pass
-    client.send(request.encode('utf-8'))
-    client.recv(1024)
-    time.sleep(2)
-    client.send(Stream_Data)
-    request_res_size = client.recv(1024)
-    print('Size of data:', request_res_size)
-    client.send('Ready for receiving '.encode('utf-8'))
-    received_size = 0
-    received_data = b''
-    while received_size < int(request_res_size.decode()):
-        if request == 'STAT':
-            received_data = pickle.loads(received_data)
-            received_data.to_csv(r'G:\Stat_data.csv', encoding='iso-8859-1')
-            data = client.recv(1024)
-            received_size += len(data)
-            received_data += data
-        elif request == 'ENTI':
-            received_data = pickle.loads(received_data)
-            received_data.to_csv(r'G:\Enti_data.csv', encoding='iso-8859-1')
-            data = client.recv(1024)
-            received_size += len(data)
-            received_data += data
-    else:
-        print('transmission has done!')
+    File_Byte = File_Reader(File_Path)
+    Size_File_Byte = os.stat(File_Path).st_size
+    # ----------------Send the Command and Size_File-------e.g:"STAT9999999(999...is size of the file
+    client.send((request + str(Size_File_Byte)).encode('utf-8'))  # 1->
+    # ---------------------From server client get the"Get the size and command"-------------
+    received_data_size = client.recv(4096)  # 2<-
+    # ------------------------Client send the data to Server for processing-----
+    client.send(File_Byte)  # 3->
+    # ---------------------Get the Size of Returned file and the file after pickling-------------------
+    Size_Returned_File = int(client.recv(4096))  # 4<-
+    Count_Rest_Data = 0
+    Data_Get = []
+    # -------We have made sure about the files need to STAT or ENTI on server,so there is only one situation
+    while Count_Rest_Data < Size_Returned_File:
+        Data_Returned = client.recv(4096)  # 5<-
+        Data_Get.append(Data_Returned)
+        Data_Get += Data_Returned
 
-client.close()
+    Data_Returned_Unpickle = pickle.loads(b"".join(Data_Get))
+    Data_Returned_Unpickle.to_csv(r'G:/' + request + '_data.csv', encoding='iso-8859-1')
+
+    client.close()
