@@ -72,8 +72,8 @@ def Command_STAT(data):
     Info_Countries = Countries_Tweets_Stat(data)
     # ------------------Merge the all data after processing-------------------
     Res_data = pd.concat([Top_Words, Top_tweets, Top_Author, Info_Countries], axis=1)
-    Res_data = pickle.dumps(Res_data)
     Res = Res_data.to_csv(r"G:/FileInTheDataBase.csv", encoding="iso-8859-1")
+    Res = pickle.dumps(Res)
     return Res
 
 
@@ -103,7 +103,7 @@ class RequestHeandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-    def _html(self,message):
+    def _html(self, message):
         """This just generates an HTML document that includes `message`
         in the body. Override, or re-write this do do more interesting stuff.
         """
@@ -112,7 +112,7 @@ class RequestHeandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write(_html("hi!"))
+        self.wfile.write(self._html("hi!"))
 
     def do_HEAD(self):
         self._set_headers()
@@ -121,19 +121,18 @@ class RequestHeandler(BaseHTTPRequestHandler):
         data_length = int(self.headers['Content-Length'])
         data = self.rfile.read(data_length)
         data_Get = pickle.loads(data)
+        self._set_headers()
         path = str(self.path)
         if path == '/STAT':
             df = Command_STAT(data_Get)
-            self.send_response(200)
-            self._set_headers()
             self.wfile.write(pickle.dumps(df))
         elif path == '/ENTI':
             df = Command_ENTI(data_Get)
-            self.send_response(200)
-            self._set_headers()
             self.wfile.write(pickle.dumps(df))
-        #else:
-            #self.send_error(404, "Not Found")
+        else:
+            self.send_error(404, "Not Found")
+        self.send_response(200)
+        self.wfile.write(self._html(pickle.dumps(df)))
 
 
 def run(server_class=HTTPServer, handler_class=RequestHeandler, addr="localhost", port=9527):
