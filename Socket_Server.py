@@ -6,6 +6,7 @@ import multiprocessing
 import os
 import time
 from pycorenlp import StanfordCoreNLP
+import pickle
 
 
 # --------------------------Find the 10 popular words in the data-------------
@@ -103,22 +104,23 @@ def process_request(conn, addr):
                 conn.sendall("Error:Invalid Info".encode('utf-8'))
                 break
             Request_Name = Msg_Data.encode('utf-8')
-            Request_Name = Request_Name.slipt('', 1)
             Size_Request = len(Request_Name)
             conn.send(Size_Request.encode('utf-8'))
-            Data_Get = conn.recv(1024).encode('utf-8')
+            Data_Get = conn.recv(1024)
+            Data_Get = pickle.loads(Data_Get)
             if Request_Name == "STAT":
                 Pack = Command_STAT(Data_Get)
-                Pack_Size = len(Pack)
-                conn.send(Pack.encode('utf-8'))
+                Pack_Size = int(len(Pack))
+                conn.send(Pack_Size.encode('utf-8'))
                 time.sleep(2)
-                conn.send(Pack)
+                conn.send(pickle.dumps(Pack))
             if Request_Name == "ENTI":
                 nlp = StanfordCoreNLP('http://localhost:9000/', 9000)
                 Pack = Command_ENTI(Data_Get, nlp)
-                conn.send(Pack.encode('utf-8'))
+                Pack_Size = int(len(Pack))
+                conn.send(Pack_Size.encode('utf-8'))
                 time.sleep(2)
-                conn.send(Pack)
+                conn.send(pickle.dumps(Pack))
     conn.close()
     return 0
 
@@ -131,16 +133,16 @@ def worker(sock):
         th.start()
 
 
-with socket.socket() as sock:
-    sock.bind(("", 8887))
-    sock.listen()
+sk = socket.socket()
+sk.bind(("127.0.0.1", 8898))
+sk.listen()
 
-    workers_count = 3
-    workers_list = [multiprocessing.Process(target=worker, args=(sock,))
-                    for _ in range(workers_count)]
+workers_count = 3
+workers_list = [multiprocessing.Process(target=worker, args=(sk,))
+                for _ in range(workers_count)]
 
-    for w in workers_list:
-        w.start()
+for w in workers_list:
+    w.start()
 
-    for w in workers_list:
-        w.join()
+for w in workers_list:
+    w.join()
