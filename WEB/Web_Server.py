@@ -77,7 +77,8 @@ def Command_STAT(data):
     return Res
 
 
-def Command_ENTI(data, NLP):  # nlp = StanfordCoreNLP('http://localhost:9000')
+def Command_ENTI(data, NLP):
+    nlp = StanfordCoreNLP('http://localhost:9000')
     data_df = data.iloc[0:-1, 6]
     res = []
     with open('G:/TEST.txt', 'w', encoding='utf-8') as ff:
