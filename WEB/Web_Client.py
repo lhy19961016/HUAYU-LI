@@ -4,7 +4,7 @@ import urllib.request
 import os
 import pickle
 
-URL = 'http://127.0.0.1:9527/'
+URL = 'http://localhost:9527/'
 
 
 def File_Reader(file_R, num):
@@ -16,8 +16,9 @@ def File_Reader(file_R, num):
     return Pack_Data
 
 
-def http_post(url, file_json):
-    req = urllib.request.Request(url, file_json)
+def http_post(url, file_pickle):
+    headers = {'User-Agent': 'User-Agent:Mozilla/5.0'}
+    req = urllib.request.Request(url, data=file_pickle, headers=headers)
     response = urllib.request.urlopen(req)
     return response.read()
 
