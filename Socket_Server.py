@@ -1,9 +1,6 @@
 import socket
 import pandas as pd
 from collections import Counter
-import threading
-import multiprocessing
-import os
 import time
 from pycorenlp import StanfordCoreNLP
 import pickle
@@ -95,54 +92,47 @@ def Command_ENTI(data, NLP):  # nlp = StanfordCoreNLP('http://localhost:9000')
         return res
 
 
-def process_request(conn, addr):
+if __name__ == '__main__':
+    sk = socket.socket()
+    ip_port = ("0.0.0.0", 8008)
+    sk.bind(ip_port)
+    sk.listen()
+    print('Connection established!')
+
+    conn, addr = sk.accept()
     print("connect client:", addr)
     with conn:
-        while 1:
-            Msg_Data = conn.recv(1024)
+        while True:
+            Msg_Data = conn.recv(4096)  # ->1
             if not Msg_Data:
                 conn.sendall("Error:Invalid Info".encode('utf-8'))
                 break
-            Request_Name = Msg_Data.encode('utf-8')
-            Size_Request = len(Request_Name)
-            conn.send(Size_Request.encode('utf-8'))
-            Data_Get = conn.recv(1024)
-            Data_Get = pickle.loads(Data_Get)
-            if Request_Name == "STAT":
-                Pack = Command_STAT(Data_Get)
+            conn.send("Get the size and command".encode('utf-8'))  # <-2
+            Size_Data = Msg_Data[4:-1]
+            Size_Data = int(Size_Data)
+            print(type(Size_Data))
+            Request_Name = Msg_Data[0:3]
+            Count_Rest_data = 0
+            Data_Concat = []
+            # ------------------Because the size of file >>>>>>>>4096 byte,we need get it by step-----
+            while Count_Rest_data < Size_Data:
+                Data_Get = conn.recv(4096)  # ->3
+                Data_Concat.append(Data_Get)
+                Count_Rest_data += len(Data_Get)
+
+            Data_Get_Pickle = pickle.loads(b"".join(Data_Concat))
+
+            if Request_Name == b"STAT":
+                Pack = Command_STAT(Data_Get_Pickle)
                 Pack_Size = int(len(Pack))
-                conn.send(Pack_Size.encode('utf-8'))
+                conn.send(Pack_Size.encode('utf-8'))  # <-4
                 time.sleep(2)
-                conn.send(pickle.dumps(Pack))
-            if Request_Name == "ENTI":
+                conn.send(pickle.dumps(Pack))  # <-5
+            if Request_Name == b"ENTI":
                 nlp = StanfordCoreNLP('http://localhost:9000/', 9000)
-                Pack = Command_ENTI(Data_Get, nlp)
+                Pack = Command_ENTI(Data_Get_Pickle, nlp)
                 Pack_Size = int(len(Pack))
                 conn.send(Pack_Size.encode('utf-8'))
                 time.sleep(2)
                 conn.send(pickle.dumps(Pack))
     conn.close()
-    return 0
-
-
-def worker(sock):
-    while 1:
-        conn, addr = sock.accept()
-        print('pid', os.getpgid())
-        th = threading.Thread(target=process_request, args=(conn, addr))
-        th.start()
-
-
-sk = socket.socket()
-sk.bind(("127.0.0.1", 8898))
-sk.listen()
-
-workers_count = 3
-workers_list = [multiprocessing.Process(target=worker, args=(sk,))
-                for _ in range(workers_count)]
-
-for w in workers_list:
-    w.start()
-
-for w in workers_list:
-    w.join()
