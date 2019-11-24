@@ -2,7 +2,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import pandas as pd
 from collections import Counter
 import pickle
-from urllib.parse import parse_qs
+import sqlite3
 
 from pycorenlp import StanfordCoreNLP
 
@@ -102,7 +102,7 @@ class RequestHeandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-    def _html(self, message):
+    def _html(self,message):
         """This just generates an HTML document that includes `message`
         in the body. Override, or re-write this do do more interesting stuff.
         """
@@ -111,7 +111,7 @@ class RequestHeandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write(self._html("hi!"))
+        self.wfile.write(_html("hi!"))
 
     def do_HEAD(self):
         self._set_headers()
@@ -119,18 +119,25 @@ class RequestHeandler(BaseHTTPRequestHandler):
     def do_POST(self):
         data_length = int(self.headers['Content-Length'])
         data = self.rfile.read(data_length)
-        # fields = parse_qs(data)
         data_Get = pickle.loads(data)
-        if self.path == '/STAT':
-            res = Command_STAT(data_Get)
-        elif self.path == '/ENTI':
-            res = Command_ENTI(data_Get)
+        path = str(self.path)
+        if path == '/STAT':
+            df = Command_STAT(data_Get)
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(pickle.dumps(df))
+        elif path == '/ENTI':
+            df = Command_ENTI(data_Get)
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(pickle.dumps(df))
+        #else:
+            #self.send_error(404, "Not Found")
 
-        self._set_headers()
-        self.wfile.write(res)
 
-
-def run(server_class=HTTPServer, handler_class=RequestHeandler, addr="127.0.0.1", port=54878):
+def run(server_class=HTTPServer, handler_class=RequestHeandler, addr="localhost", port=9527):
     server_address = (addr, port)
     httpd = server_class(server_address, handler_class)
     print(f"Starting httpd server on {addr}:{port}")
@@ -139,4 +146,3 @@ def run(server_class=HTTPServer, handler_class=RequestHeandler, addr="127.0.0.1"
 
 if __name__ == '__main__':
     run()
-
