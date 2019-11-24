@@ -125,14 +125,12 @@ class RequestHeandler(BaseHTTPRequestHandler):
         if path == '/STAT':
             df = Command_STAT(data_Get)
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+            self._set_headers()
             self.wfile.write(pickle.dumps(df))
         elif path == '/ENTI':
             df = Command_ENTI(data_Get)
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+            self._set_headers()
             self.wfile.write(pickle.dumps(df))
         #else:
             #self.send_error(404, "Not Found")
