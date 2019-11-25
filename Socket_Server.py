@@ -70,8 +70,7 @@ def Command_STAT(data):
     Info_Countries = Countries_Tweets_Stat(data)
     # ------------------Merge the all data after processing-------------------
     Res_data = pd.concat([Top_Words, Top_tweets, Top_Author, Info_Countries], axis=1)
-    Res = Res_data.to_csv(r"G:/FileInTheDataBase.csv", encoding="iso-8859-1")
-    return Res
+    return pickle.dumps(Res_data)
 
 
 def Command_ENTI(data, NLP):  # nlp = StanfordCoreNLP('http://localhost:9000')
@@ -89,7 +88,7 @@ def Command_ENTI(data, NLP):  # nlp = StanfordCoreNLP('http://localhost:9000')
             res.append(annotated)
         ff.close()
         res.reverse()
-        return res
+        return pickle.dumps(res)
 
 
 if __name__ == '__main__':
@@ -99,40 +98,43 @@ if __name__ == '__main__':
     sk.listen()
     print('Connection established!')
 
+while True:
     conn, addr = sk.accept()
     print("connect client:", addr)
     with conn:
-        while True:
-            Msg_Data = conn.recv(4096)  # ->1
-            if not Msg_Data:
-                conn.sendall("Error:Invalid Info".encode('utf-8'))
-                break
-            conn.send("Get the size and command".encode('utf-8'))  # <-2
-            Size_Data = Msg_Data[4:-1]
-            Size_Data = int(Size_Data)
-            print(type(Size_Data))
-            Request_Name = Msg_Data[0:3]
-            Count_Rest_data = 0
-            Data_Concat = []
-            # ------------------Because the size of file >>>>>>>>4096 byte,we need get it by step-----
-            while Count_Rest_data < Size_Data:
-                Data_Get = conn.recv(4096)  # ->3
-                Data_Concat.append(Data_Get)
-                Count_Rest_data += len(Data_Get)
+        Msg_Data = conn.recv(4096).decode()  # ->1
+        if not Msg_Data:
+            conn.sendall("Error:Invalid Info".encode('utf-8'))
+            break
+        conn.send("Get the size and command".encode('utf-8'))  # <-2
+        Size_Data = Msg_Data[4:-1] + Msg_Data[-1]
+        Size_Data = int(Size_Data)
+        print("Size of the Data", Size_Data)
+        Request_Name = Msg_Data[0:3]
+        Count_Rest_data = 0
+        Data_Concat = b""
+    # ------------------Because the size of file >>>>>>>>4096 byte,we need get it by step-----
+        while Count_Rest_data < Size_Data:
+            Data_Get = conn.recv(4096)  # ->3
+            Data_Concat += Data_Get
+            Count_Rest_data += len(Data_Get)
 
-            Data_Get_Pickle = pickle.loads(b"".join(Data_Concat))
+        print("GET ALL DATE!Please Wait for processing\n")
+        Data_Get_Pickle = pickle.loads(Data_Concat)
+        print(Data_Get_Pickle)
 
-            if Request_Name == b"STAT":
-                Pack = Command_STAT(Data_Get_Pickle)
-                Pack_Size = int(len(Pack))
-                conn.send(Pack_Size.encode('utf-8'))  # <-4
-                time.sleep(2)
-                conn.send(pickle.dumps(Pack))  # <-5
-            if Request_Name == b"ENTI":
+        if Request_Name == "STAT":
+            Pack = Command_STAT(Data_Get_Pickle)
+            Pack_Size = int(len(Pack))
+            conn.send(Pack_Size.encode('utf-8'))  # <-4
+            time.sleep(2)
+            conn.send(Pack)  # <-5
+        if Request_Name == "ENTI":
                 nlp = StanfordCoreNLP('http://localhost:9000/', 9000)
                 Pack = Command_ENTI(Data_Get_Pickle, nlp)
                 Pack_Size = int(len(Pack))
                 conn.send(Pack_Size.encode('utf-8'))
                 time.sleep(2)
-                conn.send(pickle.dumps(Pack))
+                conn.send(Pack)
+        conn.close()
     conn.close()
