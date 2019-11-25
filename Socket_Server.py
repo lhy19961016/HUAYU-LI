@@ -130,11 +130,11 @@ while True:
             time.sleep(2)
             conn.send(Pack)  # <-5
         if Request_Name == "ENTI":
-                nlp = StanfordCoreNLP('http://localhost:9000/', 9000)
-                Pack = Command_ENTI(Data_Get_Pickle, nlp)
-                Pack_Size = int(len(Pack))
-                conn.send(Pack_Size.encode('utf-8'))
-                time.sleep(2)
-                conn.send(Pack)
+            nlp = StanfordCoreNLP('http://localhost:9000/', 9000)
+            Pack = Command_ENTI(Data_Get_Pickle, nlp)
+            Pack_Size = int(len(Pack))
+            conn.send(Pack_Size.encode('utf-8'))
+            time.sleep(2)
+            conn.send(Pack)
         conn.close()
     conn.close()
